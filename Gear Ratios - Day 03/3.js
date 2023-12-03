@@ -40,12 +40,14 @@ const charIsNumber = (string) => !isNaN(Number.parseInt(string))
 const getHeightAndWidth = (twoDimensionalArray) => [twoDimensionalArray.length, twoDimensionalArray[0].length]
 const coordsAreEqual = (coords1, coords2) => (coords1[0] === coords2[0] && coords1[1] === coords2[1])
 
+// checks if some coordinates are within the bounds of some grid
 function isInBounds(coords, maxHeightIndex, maxWidthIndex) {
   if(coords[0] > maxHeightIndex || coords[1] > maxWidthIndex) return false
   if(coords[0] < 0 || coords[1] < 0) return false
   return true
 }
 
+// Takes two indexes. Returns an array of all indexes between them (including the original indexes)
 function getIndexesBetween(index1, index2) {
   let indexes = []
   for(let i = index1; i <= index2; i++) {
@@ -54,6 +56,7 @@ function getIndexesBetween(index1, index2) {
   return indexes
 }
 
+// checks if coordinates in a 2D array are adjacent to a symbol character
 function isAdjacentToASymbol(twoDimensionalArray, coords, excludeList = []) {
   let isAdjacent = false;
   const [height, width] = getHeightAndWidth(twoDimensionalArray)
@@ -118,6 +121,7 @@ function findConsecutiveNumberPositions(twoDimensionalArray) {
   return numbers
 }
 
+// Takes a 2D array, and returns an array of numbers that appear next to symbols
 function findNumbersAdjacentToSymbols(twoDimensionalArray) {
   const allNumberData = findConsecutiveNumberPositions(twoDimensionalArray)
   const numbersNextToSymbols = [];
