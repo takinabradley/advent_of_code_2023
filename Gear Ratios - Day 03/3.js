@@ -187,15 +187,73 @@ function findSymbols(schematicArray, excludeList = []) {
       if(charIsLetterOrNumber(char) || excludeList.includes(char)) return
 
       if(!symbols[char]) {
-        symbols[char] = [{value: symbols[char], rowIndex, columnIndex}]
+        symbols[char] = [{value: char, rowIndex, columnIndex}]
       } else {
-        symbols[char].push({value: symbols[char], rowIndex, columnIndex})
+        symbols[char].push({value: char, rowIndex, columnIndex})
       }
     })
   })
   return symbols 
 }
 
+const findStarSymbols = (schematicArray) => findSymbols(schematicArray)['*']
+
+/* {
+  "value": 467,
+  "startIndex": 0,
+  "endIndex": 2,
+  "row": 0
+} */
+function numberDataIncludesCoordinates(coords, numberObj) {
+  if(coords[0] !== numberObj.row) return false;
+
+  const possibleYValues = getIndexesBetween(numberObj.startIndex, numberObj.endIndex)
+  return possibleYValues.includes(coords[1]) 
+}
+
+function findAdjacentCoordinates(coords, maxHeightIndex, maxWidthIndex) {
+  if(coords[0] > maxHeightIndex || coords[1] > maxWidthIndex || coords[0] < 0 || coords[1] < 0) return [];
+  const adjacent = []
+  for(let i = -1; i <= 1; i++) {
+    const xCoord = coords[0] + i
+    for(let j = -1; j <= 1; j++) {
+      const yCoord = coords[1] + j
+      if(coordsAreEqual(coords, [xCoord, yCoord]) || !isInBounds([xCoord, yCoord], maxHeightIndex, maxWidthIndex)) continue
+      adjacent.push([xCoord, yCoord])
+    }
+  }
+  return adjacent
+}
+function findNumberPairsAdjacentToStarSymbols(twoDimensionalArray) {
+  const [height, width] = getHeightAndWidth(twoDimensionalArray)
+  const starSymbolData = findStarSymbols(twoDimensionalArray)
+  const numberData = findConsecutiveNumberPositions(twoDimensionalArray).flat()
+
+  // map all star symbols to be a list of their adjacent coords
+  const coordsAdjacentToStarSymbols = starSymbolData.map(starData => findAdjacentCoordinates([starData.rowIndex, starData.columnIndex], height - 1, width - 1))
+
+  // map those coords into either empty arrays (if more or less than two number are found), or arrays containting number pairs
+  const twoNumbersAdjacentToStarSymbolsWithEmptyArrays = coordsAdjacentToStarSymbols.map(coordsList => {
+    const numbersHit = [];
+    coordsList.forEach(coord => {
+      numberData.forEach(number => {
+        if(numberDataIncludesCoordinates(coord, number) && !numbersHit.includes(number)) numbersHit.push(number)
+      })
+    })
+
+    if(numbersHit.length > 2 || numbersHit.length < 2) {
+      return []
+    } else {
+      return numbersHit.map(numberData => numberData.value)
+    }
+  })
+
+  // filter empty arrays out and return
+  return twoNumbersAdjacentToStarSymbolsWithEmptyArrays.filter(arr => arr.length === 2)
+}
+
+// part two solution
+findNumberPairsAdjacentToStarSymbols(engineSchematic).reduce((sum, pair) => sum += pair[0] * pair[1], 0)
 // I need a function that takes a number object and coordinates, and returns the value of any number object that those coordinates fall in. Then I can use the coordinates from 'checkAdjacentCoordsForNumbers` to grab numbers.
 
 /* function checkAdjacentCoordsForSymbols(twoDimensionalArray, coords, excludeList = []) {
